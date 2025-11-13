@@ -53,9 +53,10 @@ enum Akinator_Errors
 Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name);
 
 Akinator_Errors AkinatorVerify(binary_tree *tree);
-void check_sons_and_parents(node_t *node, bool *flag, node_t **son, node_t **parent);
+bool check_sons_and_parents(node_t *node, node_t **son, node_t **parent);
+void check_sons_and_parents_recursive(node_t *node, bool *flag, node_t **son, node_t **parent);
 
-Akinator_Errors AkinatorDestroy(binary_tree *tree, node_t *node);
+Akinator_Errors AkinatorDestroy(binary_tree *tree, node_t **node);
 
 void AkinatorDump(binary_tree *tree, const char *file, int line);
 void dump_to_console(const binary_tree *tree, const char *file, int line, ssize_t *rank);
@@ -67,17 +68,21 @@ void link_edges(FILE *fp, node_t *node);
 void create_graph(const binary_tree *tree, const char *gvfile_name);
 
 
-Akinator_Errors akinator_game(binary_tree *tree);
+Akinator_Errors AkinatorGame(binary_tree *tree);
 void get_a_request_number(ssize_t *num);
 Akinator_Errors play_game(binary_tree *tree);
-Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char *string);
+Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char **string);
 bool start_again(char **answer);
 void get_answer(char **answer);
 void get_object(char **ptr);
 void get_feature(char **ptr, char *object, node_t *node);
-Akinator_Errors find_an_object(binary_tree *tree);
-Akinator_Errors compare_objects(binary_tree *tree);
 void discard_superfluous();
+
+Akinator_Errors find_object(binary_tree *tree);
+bool find_object_recursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *flag);
+void get_description(binary_tree *tree, node_t * ptr_object);
+
+Akinator_Errors compare_objects(binary_tree *tree);
 
 bool open_file_success(FILE *fp, const char * file_name);
 bool close_files_success(FILE *fp, const char * file_name);

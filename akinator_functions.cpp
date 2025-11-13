@@ -1,5 +1,7 @@
 #include "akinator.h"
 
+//TODO: define для красивого графического дампа дерева
+
 Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name)
 {
     assert(tree != NULL);
@@ -13,8 +15,8 @@ Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name)
         return ERROR_DURING_THE_CREATION_OF_THE_TREE;
     }
 
-    tree->root->data = (char *)calloc(STR_SIZE + 1, sizeof(char));
-    sprintf(tree->root->data, "Nothing");
+    tree->root->data = strdup("Nothing");
+
     tree->root->left = NULL;
     tree->root->right = NULL;
     tree->root->parent = NULL;
@@ -33,12 +35,10 @@ Akinator_Errors AkinatorVerify(binary_tree *tree)
     else if (tree->root == NULL) return NULL_POINTER_ON_ROOT; // не забыть в delete учесть удаление корня
     else if (tree->root->parent != NULL) return ROOT_HAVE_PARENT;  
     
-    bool flag = true;
     node_t *parent = NULL;
     node_t *son = NULL;
-    //check_sons_and_parents(tree->root, &flag, &son, &parent);
 
-    if (flag == false)
+    if (!check_sons_and_parents(tree->root, &son, &parent))
     {
         printf("son %p has a parent %p, but not %p", son, son->parent, parent);
         return SON_HAS_WRONG_PARENT;
@@ -47,12 +47,20 @@ Akinator_Errors AkinatorVerify(binary_tree *tree)
     return NO_ERROR;
 }
 
-void check_sons_and_parents(node_t *node, bool *flag, node_t **son, node_t **parent)
+bool check_sons_and_parents(node_t *node, node_t **son, node_t **parent)
+{
+    bool flag = true;
+    check_sons_and_parents_recursive(node, &flag, son, parent);
+
+    return flag;
+}
+
+void check_sons_and_parents_recursive(node_t *node, bool *flag, node_t **son, node_t **parent)
 {
     if (node == NULL)
         return;
 
-    check_sons_and_parents(node->left, flag, son, parent);
+    check_sons_and_parents_recursive(node->left, flag, son, parent);
 
     if (node->left != NULL) 
     {
@@ -73,33 +81,37 @@ void check_sons_and_parents(node_t *node, bool *flag, node_t **son, node_t **par
         }
     }
 
-    check_sons_and_parents(node->right, flag, son, parent);
+    check_sons_and_parents_recursive(node->right, flag, son, parent);
     
     return;
 }
 
-Akinator_Errors AkinatorDestroy(binary_tree *tree, node_t *node)
+// FIXME: нужен только 1 параметр на самом деле
+Akinator_Errors AkinatorDestroy(binary_tree *tree, node_t **node)
 {
     assert(tree != NULL);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))
+    {
+        printf("*****Verify work*********");
         return err;
-
-    if (node == NULL)
+    }
+    if (*node == NULL)
     {
         printf("node = NULL\n");
         return NO_ERROR;
     }
-    AkinatorDestroy(tree, node->left);
-    AkinatorDestroy(tree, node->right);
+    AkinatorDestroy(tree, &((*node)->left));
+    AkinatorDestroy(tree, &((*node)->right));
 
-    printf("%s\n", node->data);
-    free(node->data);
-    free(node);
+    printf("%s\n", (*node)->data);
+    free((*node)->data);
+    (*node)->data = NULL;
+    free(*node);
     tree->num_of_el--;
     printf("Free\n");
-    node = NULL;
+    *node = NULL;
 
     return err;
 }
@@ -195,7 +207,7 @@ void create_graph(const binary_tree *tree, const char *gvfile_name)
     fprintf(fp, "   bgcolor=\"LightBlue\";\n");
 
     print_edges(fp, tree->root);
-    fprintf(fp, "\"node_%p\" [fillcolor = \"violet\", label = \"{<parent> %p | <data> %s | {<left> %p |<right> %p}}\"];\n", tree->root, tree->root->parent, tree->root->data, tree->root->left, tree->root->right);
+    fprintf(fp, "\"node_%p\" [fillcolor = \"violet\", label = \"{<parent> %p | <data> %s | {<left> %p |<right> %p} | {<left_answer> yes |<right_answer> no}}\"];\n", tree->root, tree->root->parent, tree->root->data, tree->root->left, tree->root->right);
     link_edges(fp, tree->root);
 
     fprintf(fp, "\n}");
@@ -300,7 +312,7 @@ bool print_error(Akinator_Errors err)
             return true;
 
         case ELEMENT_NOT_FOUND:
-            printf("Еhe item to delete was not found in the tree\n");
+            printf("The item to delete was not found in the tree\n");
             return true;
 
         case ERROR_DURING_THE_CREATION_OF_THE_TREE:

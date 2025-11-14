@@ -12,6 +12,7 @@
 #define AKINATOR_DUMP(tree)\
         AkinatorDump(tree,__FILE__, __LINE__)
 
+#define BEAUTIFUL_DUMP 
 typedef int used_type;
 
 const used_type POIZON = 765418;
@@ -53,40 +54,43 @@ enum Akinator_Errors
 Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name);
 
 Akinator_Errors AkinatorVerify(binary_tree *tree);
-bool check_sons_and_parents(node_t *node, node_t **son, node_t **parent);
-void check_sons_and_parents_recursive(node_t *node, bool *flag, node_t **son, node_t **parent);
+bool CheckSonsAndParents(node_t *node, node_t **son, node_t **parent);
+void CheckSonsAndParentsRecursive(node_t *node, bool *flag, node_t **son, node_t **parent);
 
-Akinator_Errors AkinatorDestroy(binary_tree *tree, node_t **node);
+Akinator_Errors AkinatorDestroy(binary_tree *tree);
+Akinator_Errors AkinatorDestroyRecursive(binary_tree *tree, node_t **node);
 
 void AkinatorDump(binary_tree *tree, const char *file, int line);
-void dump_to_console(const binary_tree *tree, const char *file, int line, ssize_t *rank);
-void dump_to_logfile(const binary_tree *tree, const char *logfile_name, const char *gvfile_name, ssize_t *rank);
-void dump(FILE *fp, const binary_tree *tree, ssize_t *rank);
-void show_tree(FILE *fp, node_t *node, ssize_t *rank, ssize_t *cur_rank);
-void print_edges(FILE *fp, node_t *node);
-void link_edges(FILE *fp, node_t *node);
-void create_graph(const binary_tree *tree, const char *gvfile_name);
+void DumpToConsole(const binary_tree *tree, const char *file, int line, ssize_t *rank);
+void DumpToLogfile(const binary_tree *tree, const char *logfile_name, const char *gvfile_name, ssize_t *rank);
+void Dump(FILE *fp, const binary_tree *tree, ssize_t *rank);
+void ShowTree(FILE *fp, node_t *node, ssize_t *rank, ssize_t *cur_rank);
+void PrintEdges(FILE *fp, node_t *node);
+void LinkEdges(FILE *fp, node_t *node);
+void CreateGraph(const binary_tree *tree, const char *gvfile_name);
 
 
 Akinator_Errors AkinatorGame(binary_tree *tree);
-void get_a_request_number(ssize_t *num);
-Akinator_Errors play_game(binary_tree *tree);
+void GetARequestNumber(ssize_t *num);
+Akinator_Errors PlayGame(binary_tree *tree);
+Akinator_Errors Victory(binary_tree *tree);
+Akinator_Errors AddingNode(binary_tree *tree, node_t *node);
 Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char **string);
-bool start_again(char **answer);
-void get_answer(char **answer);
-void get_object(char **ptr);
-void get_feature(char **ptr, char *object, node_t *node);
-void discard_superfluous();
+bool GetAnswer();
+void GetObject(char **ptr);
+void GetFeature(char **ptr, char *object, node_t *node);
+bool GetDifference(char **ptr, char *object, node_t *node);
+void DiscardSuperfluous();
 
-Akinator_Errors find_object(binary_tree *tree);
-bool find_object_recursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *flag);
-void get_description(binary_tree *tree, node_t * ptr_object);
+Akinator_Errors FindObject(binary_tree *tree);
+bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found);
+void GetDescription(binary_tree *tree, node_t * ptr_object);
 
-Akinator_Errors compare_objects(binary_tree *tree);
+Akinator_Errors CompareObjects(binary_tree *tree);
 
-bool open_file_success(FILE *fp, const char * file_name);
-bool close_files_success(FILE *fp, const char * file_name);
+bool OpenFileSuccess(FILE *fp, const char * file_name);
+bool CloseFileSuccess(FILE *fp, const char * file_name);
 
-bool print_error(Akinator_Errors err);
+bool PrintError(Akinator_Errors err);
 
 #endif

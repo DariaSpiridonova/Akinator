@@ -10,12 +10,12 @@ int main()
     Akinator_Errors err = NO_ERROR;
 
     if ((err = AkinatorInit(&akinator_tree, "logfile_for_tree1.htm")))
-        print_error(err);
+        PrintError(err);
     if ((err = AkinatorGame(&akinator_tree))) // FIXME: выбрать кодстайл и привести все функции
-        print_error(err);
+        PrintError(err);
     AKINATOR_DUMP(&akinator_tree);
-    if ((err = AkinatorDestroy(&akinator_tree, &(akinator_tree.root))))
-        print_error(err);
+    if ((err = AkinatorDestroy(&akinator_tree)))
+        PrintError(err);
     //printf("akinator_tree.root.left_adress = %p\n", akinator_tree.root->left);
     printf("akinator_tree.root_adress = %p\n", akinator_tree.root);
     printf("thats all\n");

@@ -101,7 +101,9 @@ void GetDescription(binary_tree *tree, node_t * ptr_object);
 
 Akinator_Errors CompareObjects(binary_tree *tree);
 
-Akinator_Errors SaveTreeToFile(binary_tree *tree, FILE *file_to_save);
+Akinator_Errors SaveTreeToFile(binary_tree *tree, char *name_of_file);
+void SaveTreeToFileRecursive(FILE *fp, node_t *node);
+
 Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file);
 char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent);
 Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **node, node_t *parent);

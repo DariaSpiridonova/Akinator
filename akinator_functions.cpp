@@ -244,6 +244,7 @@ void PrintEdges(FILE *fp, node_t *node)
         return;
 
     PrintEdges(fp, node->left);
+
     #ifdef BEAUTIFUL_DUMP
     if (node->left == NULL)
          fprintf(fp, "\"node_%p\" [fillcolor = \"Pink\", label = \"{<data> %s}\"];\n", node, node->data);
@@ -254,6 +255,7 @@ void PrintEdges(FILE *fp, node_t *node)
     fprintf(fp, "\"node_%p\" [fillcolor = \"Pink\", label = \"{<parent> %p | <data> %s | {<left> %p |<right> %p}}\"];\n", node, node->parent, node->data, node->left, node->right);
     else fprintf(fp, "\"node_%p\" [fillcolor = \"Pink\", label = \"{<parent> %p | <data> %s | {<left> %p |<right> %p} | {<left_answer> yes |<right_answer> no}}\"];\n", node, node->parent, node->data, node->left, node->right);
     #endif
+
     PrintEdges(fp, node->right);
 
     return;
@@ -293,7 +295,7 @@ void ShowTree(FILE *fp, node_t *node, ssize_t *rank, ssize_t *cur_rank)
     return;
 }
 
-Akinator_Errors SaveTreeToFile(binary_tree *tree, FILE *file_to_save)
+Akinator_Errors SaveTreeToFile(binary_tree *tree, char *name_of_file)
 {
     ASSERTS(tree);
 
@@ -303,7 +305,32 @@ Akinator_Errors SaveTreeToFile(binary_tree *tree, FILE *file_to_save)
         return err;
     }
 
+    FILE *file_to_read = fopen(name_of_file, "w");
+    if (!OpenFileSuccess(file_to_read, name_of_file))
+        return ERROR_DURING_OPENING_FILE;
+
+    SaveTreeToFileRecursive(file_to_read, tree->root);
+
+    if (!CloseFileSuccess(file_to_read, name_of_file))
+        return ERROR_DURING_CLOSING_FILE;
+
     return err;
+}
+
+void SaveTreeToFileRecursive(FILE *fp, node_t *node)
+{
+    if (node == NULL)
+    {
+        fprintf(fp, "nil ");
+        return;
+    }
+    
+    fprintf(fp, " ( ");
+    fprintf(fp, " \"%s\" ", node->data);
+    SaveTreeToFileRecursive(fp, node->left);
+    SaveTreeToFileRecursive(fp, node->right);
+    fprintf(fp, " ) ");
+    return;
 }
 
 Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
@@ -317,7 +344,7 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
     }
 
     FILE *file_to_read = fopen(name_of_file, "r");
-    if (!OpenFileSuccess(file_to_read, "tree_for_akinator_game.txt"))
+    if (!OpenFileSuccess(file_to_read, name_of_file))
         return ERROR_DURING_OPENING_FILE;
 
     fseek(file_to_read, SEEK_SET, 0);
@@ -332,7 +359,6 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
         return ERROR_DURING_READ_FILE;
 
     printf("%zu\n", num_success_read_symbols); // проверка количества успешно прочитанных в буфер символов
-    printf("content = %s\n", tree_buffer);
 
     tree_buffer[num_success_read_symbols] = '\0';
    
@@ -347,11 +373,7 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
         printf("<%s>\n", ptr_to_quotation_mark);
         if (i % 2) *ptr_to_quotation_mark = '\0';
         ptr_to_quotation_mark++;
-        //if (ptr_on_first_qm == ptr_to_quotation_mark) break;
-        //if (i == 2) ptr_on_first_qm = ptr_to_quotation_mark;
     }
-
-    printf("a = %zu", a);
 
     static char *position = tree_buffer;
     ReadNodeFromBuffer(tree, &position, &(tree->root), NULL);
@@ -361,7 +383,6 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
     ShowTree(stdout, tree->root, &rank, &cur_rank);
     free(tree_buffer);
 
-    printf("tree made\n");
     return err;
 }
 
@@ -376,13 +397,11 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
     }
 
     SkipSpaces(position);
-    printf("*position_000000 = <%c>\n", **position);
 
     if (**position == '(')
     {
         (*position)++;
         SkipSpaces(position);
-        printf("*position = <%c>\n", **position);
 
         if (**position == '"')
         {
@@ -392,7 +411,7 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
             *position = strchr(*position, '\0') + 1;
         }
 
-        else return NULL; // TODO: exactly? 
+        else return NULL;
     }
 
     else if (**position == 'n' && *(*position + 1) == 'i' && *(*position + 2) == 'l' && *(*position + 3) == ' ')
@@ -404,11 +423,8 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
     }
 
     *position = ReadNodeFromBuffer(tree, position, &((*node)->left), *node);
-    printf("\n*position_____2 = <%s>\n", *position);
-    printf("\n(*node)->data = <%s>\n", (*node)->data);
+
     *position = ReadNodeFromBuffer(tree, position, &((*node)->right), *node);
-    printf("\n*position_____3 = <%s>\n", *position);
-    printf("\n(*node)->data = <%s>\n", (*node)->data);
 
     SkipSpaces(position);
     if (**position == ')')
@@ -439,9 +455,7 @@ Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **no
         tree->num_of_el++;
     }
     if (*node == tree->root) free(tree->root->data);
-    printf("*******HEAR***********\n");
     (*node)->data = strdup(*position);
-    printf("node->data = %s\n", (*node)->data);
     (*node)->parent = parent; 
     (*node)->left = NULL;
     (*node)->right = NULL;

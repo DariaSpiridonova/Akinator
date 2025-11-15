@@ -1,0 +1,1 @@
+ (  "animal?"  (  "big?"  (  "bear" nil nil  )  (  "mouse" nil nil  )  )  (  "banana" nil nil  )  ) 

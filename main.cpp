@@ -26,10 +26,16 @@ int main()
         
     AKINATOR_DUMP(&akinator_tree);
 
-    if ((err = AkinatorDestroy(&akinator_tree)))
+    if ((err = SaveTreeToFile(&akinator_tree, "new_tree_for_akinator_game.txt")))
     {
         PrintError(err);
         return 5;
+    }
+
+    if ((err = AkinatorDestroy(&akinator_tree)))
+    {
+        PrintError(err);
+        return 6;
     }
         
     printf("akinator_tree.root_adress = %p\n", akinator_tree.root);

@@ -8,6 +8,13 @@
 #include <assert.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/stat.h>
+
+#define ASSERTS(tree)\
+        assert(tree != NULL);\
+        assert(tree->num_of_el >= 0);\
+        assert(tree->root != NULL);\
+        assert(tree->root->parent == NULL);
 
 #define AKINATOR_DUMP(tree)\
         AkinatorDump(tree,__FILE__, __LINE__)
@@ -19,6 +26,7 @@ const used_type POIZON = 765418;
 const ssize_t SIZE_OF_NAME = 200;
 const size_t STR_SIZE = 50;
 const size_t ANSWER_SIZE = 5;
+const size_t LEN = 5;
 const char link_to_graphviz_file[] = "../Graphviz/akinator_";
 
 struct NODE_T
@@ -48,7 +56,12 @@ enum Akinator_Errors
     NEGATIVE_NUM_OF_ELEMENTS,
     NULL_POINTER_ON_ROOT,
     ROOT_HAVE_PARENT,
-    SON_HAS_WRONG_PARENT 
+    SON_HAS_WRONG_PARENT,
+    ERROR_DURING_OPENING_FILE,
+    ERROR_DURING_CLOSING_FILE,
+    ERROR_DURING_MEMORY_ALLOCATION,
+    ERROR_DURING_READ_FILE,
+    INCORRECT_DATA_IN_FILE
 };
 
 Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name);
@@ -87,6 +100,13 @@ bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t *
 void GetDescription(binary_tree *tree, node_t * ptr_object);
 
 Akinator_Errors CompareObjects(binary_tree *tree);
+
+Akinator_Errors SaveTreeToFile(binary_tree *tree, FILE *file_to_save);
+Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file);
+char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent);
+Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **node, node_t *parent);
+size_t return_num_of_bytes_in_file(int fd1);
+void SkipSpaces(char **position);
 
 bool OpenFileSuccess(FILE *fp, const char * file_name);
 bool CloseFileSuccess(FILE *fp, const char * file_name);

@@ -86,6 +86,8 @@ void CheckSonsAndParentsRecursive(node_t *node, bool *flag, node_t **son, node_t
 
 Akinator_Errors AkinatorDestroy(binary_tree *tree)
 {
+    ASSERTS(tree);
+
     Akinator_Errors err = NO_ERROR;
     err = AkinatorDestroyRecursive(tree, &(tree->root));
     return err;
@@ -100,6 +102,7 @@ Akinator_Errors AkinatorDestroyRecursive(binary_tree *tree, node_t **node)
     {
         return err;
     }
+
     if (*node == NULL)
     {
         printf("node = NULL\n");
@@ -121,7 +124,7 @@ Akinator_Errors AkinatorDestroyRecursive(binary_tree *tree, node_t **node)
 
 void AkinatorDump(binary_tree *tree, const char *file, int line)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     ssize_t rank = 0;
     DumpToConsole(tree, file, line, &rank);
@@ -290,6 +293,183 @@ void ShowTree(FILE *fp, node_t *node, ssize_t *rank, ssize_t *cur_rank)
     return;
 }
 
+Akinator_Errors SaveTreeToFile(binary_tree *tree, FILE *file_to_save)
+{
+    ASSERTS(tree);
+
+    Akinator_Errors err = NO_ERROR;
+    if ((err = AkinatorVerify(tree)))
+    {
+        return err;
+    }
+
+    return err;
+}
+
+Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
+{
+    ASSERTS(tree);
+
+    Akinator_Errors err = NO_ERROR;
+    if ((err = AkinatorVerify(tree)))
+    {
+        return err;
+    }
+
+    FILE *file_to_read = fopen(name_of_file, "r");
+    if (!OpenFileSuccess(file_to_read, "tree_for_akinator_game.txt"))
+        return ERROR_DURING_OPENING_FILE;
+
+    fseek(file_to_read, SEEK_SET, 0);
+    size_t num_of_bytes_in_file = return_num_of_bytes_in_file(fileno(file_to_read));
+
+    char *tree_buffer = (char *)calloc(num_of_bytes_in_file + 1, sizeof(char));
+    if (tree_buffer == NULL)
+        return ERROR_DURING_MEMORY_ALLOCATION;
+
+    size_t num_success_read_symbols = fread(tree_buffer, sizeof(char), num_of_bytes_in_file, file_to_read);
+    if (num_success_read_symbols < num_of_bytes_in_file)
+        return ERROR_DURING_READ_FILE;
+
+    printf("%zu\n", num_success_read_symbols); // проверка количества успешно прочитанных в буфер символов
+    printf("content = %s\n", tree_buffer);
+
+    tree_buffer[num_success_read_symbols] = '\0';
+   
+    if (!CloseFileSuccess(file_to_read, "tree_for_akinator_game.txt"))
+        return ERROR_DURING_CLOSING_FILE;
+    
+    char *ptr_to_quotation_mark = tree_buffer;
+    size_t a = 0;
+    for (size_t i = 0; (ptr_to_quotation_mark = strchr(ptr_to_quotation_mark, '"')) != NULL; i++)
+    {
+        a++;
+        printf("<%s>\n", ptr_to_quotation_mark);
+        if (i % 2) *ptr_to_quotation_mark = '\0';
+        ptr_to_quotation_mark++;
+        //if (ptr_on_first_qm == ptr_to_quotation_mark) break;
+        //if (i == 2) ptr_on_first_qm = ptr_to_quotation_mark;
+    }
+
+    printf("a = %zu", a);
+
+    static char *position = tree_buffer;
+    ReadNodeFromBuffer(tree, &position, &(tree->root), NULL);
+
+    ssize_t rank = 0;
+    ssize_t cur_rank = 0;
+    ShowTree(stdout, tree->root, &rank, &cur_rank);
+    free(tree_buffer);
+
+    printf("tree made\n");
+    return err;
+}
+
+char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent)
+{
+    ASSERTS(tree);
+
+    Akinator_Errors err = NO_ERROR;
+    if ((err = AkinatorVerify(tree)))
+    {
+        return NULL;
+    }
+
+    SkipSpaces(position);
+    printf("*position_000000 = <%c>\n", **position);
+
+    if (**position == '(')
+    {
+        (*position)++;
+        SkipSpaces(position);
+        printf("*position = <%c>\n", **position);
+
+        if (**position == '"')
+        {
+            (*position)++;
+            NodeFromFileInit(tree, position, node, parent);
+
+            *position = strchr(*position, '\0') + 1;
+        }
+
+        else return NULL; // TODO: exactly? 
+    }
+
+    else if (**position == 'n' && *(*position + 1) == 'i' && *(*position + 2) == 'l' && *(*position + 3) == ' ')
+    {
+        SkipSpaces(position);
+
+        *position += 3;
+        return *position;
+    }
+
+    *position = ReadNodeFromBuffer(tree, position, &((*node)->left), *node);
+    printf("\n*position_____2 = <%s>\n", *position);
+    printf("\n(*node)->data = <%s>\n", (*node)->data);
+    *position = ReadNodeFromBuffer(tree, position, &((*node)->right), *node);
+    printf("\n*position_____3 = <%s>\n", *position);
+    printf("\n(*node)->data = <%s>\n", (*node)->data);
+
+    SkipSpaces(position);
+    if (**position == ')')
+    {
+        (*position)++;
+        return *position;
+    }
+
+    if ((err = AkinatorVerify(tree)))
+    {
+        return *position;
+    }
+
+    return *position;
+}
+
+Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **node, node_t *parent)
+{
+    ASSERTS(tree);
+    
+    Akinator_Errors err = NO_ERROR;
+    if ((err = AkinatorVerify(tree)))
+        return err;
+
+    if (*node != tree->root)
+    {
+        *node = (node_t *)calloc(1, sizeof(node_t));
+        tree->num_of_el++;
+    }
+    if (*node == tree->root) free(tree->root->data);
+    printf("*******HEAR***********\n");
+    (*node)->data = strdup(*position);
+    printf("node->data = %s\n", (*node)->data);
+    (*node)->parent = parent; 
+    (*node)->left = NULL;
+    (*node)->right = NULL;
+
+    if ((err = AkinatorVerify(tree)))
+        return err;
+
+    return err;
+}
+
+size_t return_num_of_bytes_in_file(int fd1)
+{
+    struct stat st1 = {};
+    fstat(fd1, &st1);
+
+    return (size_t)st1.st_size;
+}
+
+void SkipSpaces(char **position)
+{
+    while (**position == ' ') 
+    {
+        printf("<%c>", **position);
+        (*position)++;
+        continue;
+    };
+}
+
 bool OpenFileSuccess(FILE *fp, const char * file_name)
 {
     if (fp == NULL)
@@ -349,6 +529,26 @@ bool PrintError(Akinator_Errors err)
 
         case SON_HAS_WRONG_PARENT:
             printf("A son has a wrong parent\n");
+            return true;
+
+        case ERROR_DURING_OPENING_FILE:
+            printf("An error occurred while opening the file\n");
+            return true;
+
+        case ERROR_DURING_CLOSING_FILE:
+            printf("An error occurred while closing the file\n");
+            return true;
+
+        case ERROR_DURING_MEMORY_ALLOCATION:
+            printf("Couldn't allocate dynamic memory\n");
+            return true;
+
+        case ERROR_DURING_READ_FILE:
+            printf("The number of successfully read characters from the file is less than its content\n");
+            return true;
+
+        case INCORRECT_DATA_IN_FILE:
+            printf("There are incorrect data in the file with tree nodes\n");
             return true;
 
         default:

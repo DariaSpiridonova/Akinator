@@ -2,11 +2,13 @@
 
 Akinator_Errors AkinatorGame(binary_tree *tree)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))
         return err;
+
+    printf("tree->root = %s\n", tree->root->data);
 
     printf("What do you want to do?\n");
     printf("    1) Play a game\n");
@@ -51,7 +53,7 @@ void GetARequestNumber(ssize_t *num)
 
 Akinator_Errors PlayGame(binary_tree *tree)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))
@@ -72,8 +74,7 @@ Akinator_Errors PlayGame(binary_tree *tree)
             {
                 node = node->left;
             }
-
-            else if (!answer)
+            else 
             {
                 node = node->right;
             }
@@ -110,6 +111,7 @@ Akinator_Errors PlayGame(binary_tree *tree)
 
 Akinator_Errors AddingNode(binary_tree *tree, node_t *node)
 {
+    ASSERTS(tree);
     assert(node != NULL);
 
     Akinator_Errors err = NO_ERROR;
@@ -142,7 +144,7 @@ Akinator_Errors AddingNode(binary_tree *tree, node_t *node)
 
 Akinator_Errors Victory(binary_tree *tree)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))
@@ -154,7 +156,7 @@ Akinator_Errors Victory(binary_tree *tree)
 
 Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char **string)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
     assert(parent != NULL);
     assert(string != NULL);
 
@@ -247,7 +249,7 @@ bool GetDifference(char **ptr, char *object, node_t *node)
 
 Akinator_Errors FindObject(binary_tree *tree)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))
@@ -284,6 +286,7 @@ Akinator_Errors FindObject(binary_tree *tree)
 
 bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found)
 {
+    ASSERTS(tree);
     assert(object != NULL);
 
     if (*object_was_found) return true;
@@ -304,6 +307,8 @@ bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t *
 
 void GetDescription(binary_tree *tree, node_t * ptr_object)
 {
+    ASSERTS(tree);
+
     printf("%s: \n", ptr_object->data);
     if (ptr_object == tree->root) printf("It is the root element and has no properties.");
     else
@@ -312,14 +317,17 @@ void GetDescription(binary_tree *tree, node_t * ptr_object)
         node_t *node = ptr_object;
         for (size_t i = 1; node != tree->root; i++, node = node->parent)
         {
-            printf("%zu. %.*s\n", i, (int)strlen(node->parent->data) - 1, node->parent->data);
+            if (!strcmp(node->parent->right->data, node->data))
+                printf("%zu. no %.*s\n", i, (int)strlen(node->parent->data) - 1, node->parent->data);
+            else 
+                printf("%zu. %.*s\n", i, (int)strlen(node->parent->data) - 1, node->parent->data);
         }
     }
 }
 
 Akinator_Errors CompareObjects(binary_tree *tree)
 {
-    assert(tree != NULL);
+    ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
     if ((err = AkinatorVerify(tree)))

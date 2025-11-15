@@ -86,6 +86,7 @@ void CreateGraph(const binary_tree *tree, const char *gvfile_name);
 Akinator_Errors AkinatorGame(binary_tree *tree);
 void GetARequestNumber(ssize_t *num);
 Akinator_Errors PlayGame(binary_tree *tree);
+void AskQuestion(node_t **node);
 Akinator_Errors Victory(binary_tree *tree);
 Akinator_Errors AddingNode(binary_tree *tree, node_t *node);
 Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char **string);
@@ -105,6 +106,7 @@ Akinator_Errors SaveTreeToFile(binary_tree *tree, char *name_of_file);
 void SaveTreeToFileRecursive(FILE *fp, node_t *node);
 
 Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file);
+void SplitIntoParts(char *tree_buffer);
 char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent);
 Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **node, node_t *parent);
 size_t return_num_of_bytes_in_file(int fd1);

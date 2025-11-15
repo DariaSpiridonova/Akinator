@@ -358,32 +358,29 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
     if (num_success_read_symbols < num_of_bytes_in_file)
         return ERROR_DURING_READ_FILE;
 
-    printf("%zu\n", num_success_read_symbols); // проверка количества успешно прочитанных в буфер символов
-
     tree_buffer[num_success_read_symbols] = '\0';
    
     if (!CloseFileSuccess(file_to_read, "tree_for_akinator_game.txt"))
         return ERROR_DURING_CLOSING_FILE;
     
-    char *ptr_to_quotation_mark = tree_buffer;
-    size_t a = 0;
-    for (size_t i = 0; (ptr_to_quotation_mark = strchr(ptr_to_quotation_mark, '"')) != NULL; i++)
-    {
-        a++;
-        printf("<%s>\n", ptr_to_quotation_mark);
-        if (i % 2) *ptr_to_quotation_mark = '\0';
-        ptr_to_quotation_mark++;
-    }
+    SplitIntoParts(tree_buffer);
 
     static char *position = tree_buffer;
     ReadNodeFromBuffer(tree, &position, &(tree->root), NULL);
 
-    ssize_t rank = 0;
-    ssize_t cur_rank = 0;
-    ShowTree(stdout, tree->root, &rank, &cur_rank);
     free(tree_buffer);
 
     return err;
+}
+
+void SplitIntoParts(char *tree_buffer)
+{
+    char *ptr_to_quotation_mark = tree_buffer;
+    for (size_t i = 0; (ptr_to_quotation_mark = strchr(ptr_to_quotation_mark, '"')) != NULL; i++)
+    {
+        if (i % 2) *ptr_to_quotation_mark = '\0';
+        ptr_to_quotation_mark++;
+    }
 }
 
 char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent)
@@ -423,7 +420,6 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
     }
 
     *position = ReadNodeFromBuffer(tree, position, &((*node)->left), *node);
-
     *position = ReadNodeFromBuffer(tree, position, &((*node)->right), *node);
 
     SkipSpaces(position);

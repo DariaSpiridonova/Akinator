@@ -64,20 +64,9 @@ Akinator_Errors PlayGame(binary_tree *tree)
 
     while (true)
     {
-        // traverse
-        while (node->data[strlen(node->data) - 1]  == '?') // is question
+        while (node->data[strlen(node->data) - 1]  == '?') 
         {
-            printf("%s\n", node->data);
-            answer = GetAnswer();
-
-            if (answer)
-            {
-                node = node->left;
-            }
-            else 
-            {
-                node = node->right;
-            }
+            AskQuestion(&node);
         }
 
         printf("Is it %s?\n", node->data);
@@ -107,6 +96,22 @@ Akinator_Errors PlayGame(binary_tree *tree)
         return err;
 
     return err;
+}
+
+void AskQuestion(node_t **node)
+{
+    bool answer = false;
+    printf("%s\n", (*node)->data);
+    answer = GetAnswer();
+
+    if (answer)
+    {
+        *node = (*node)->left;
+    }
+    else 
+    {
+        *node = (*node)->right;
+    }
 }
 
 Akinator_Errors AddingNode(binary_tree *tree, node_t *node)

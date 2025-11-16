@@ -82,7 +82,6 @@ void PrintEdges(FILE *fp, node_t *node);
 void LinkEdges(FILE *fp, node_t *node);
 void CreateGraph(const binary_tree *tree, const char *gvfile_name);
 
-
 Akinator_Errors AkinatorGame(binary_tree *tree);
 void GetARequestNumber(ssize_t *num);
 Akinator_Errors PlayGame(binary_tree *tree);
@@ -97,15 +96,19 @@ bool GetDifference(char **ptr, char *object, node_t *node);
 void DiscardSuperfluous();
 
 Akinator_Errors FindObject(binary_tree *tree);
-bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found);
-void GetDescription(binary_tree *tree, node_t * ptr_object);
+bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found, node_t **ptrs_on_nodes, size_t *index);
+void GetDescription(binary_tree *tree, node_t * ptr_object, node_t **ptrs_on_nodes, size_t i);
 
 Akinator_Errors CompareObjects(binary_tree *tree);
+void compare_found_items(binary_tree *tree, bool *not_root_element, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, node_t *ptr_object1, node_t *ptr_object2);
+void print_general_signs(bool not_root_element, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, size_t *i1, size_t *i2);
+void print_differences(binary_tree *tree, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, node_t *ptr_object1, node_t *ptr_object2, size_t *i1, size_t *i2);
+void free_objects(char *object1, char *object2, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes);
 
-Akinator_Errors SaveTreeToFile(binary_tree *tree, char *name_of_file);
+Akinator_Errors SaveTreeToFile(binary_tree *tree, const char *name_of_file);
 void SaveTreeToFileRecursive(FILE *fp, node_t *node);
 
-Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file);
+Akinator_Errors ReadTreeFromFile(binary_tree *tree, const char *name_of_file);
 void SplitIntoParts(char *tree_buffer);
 char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node_t *parent);
 Akinator_Errors NodeFromFileInit(binary_tree *tree, char **position, node_t **node, node_t *parent);

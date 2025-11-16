@@ -8,8 +8,6 @@ Akinator_Errors AkinatorGame(binary_tree *tree)
     if ((err = AkinatorVerify(tree)))
         return err;
 
-    printf("tree->root = %s\n", tree->root->data);
-
     printf("What do you want to do?\n");
     printf("    1) Play a game\n");
     printf("    2) Find an object\n");
@@ -133,8 +131,6 @@ Akinator_Errors AddingNode(binary_tree *tree, node_t *node)
     NodeInit(tree, &(node->right), node, &(node->data));
     
     NodeInit(tree, &(node->left), node, &object);
-    if (node->data == NULL)
-    printf("node->data = \n");
 
     node->data = strdup(feature);
     free(feature);
@@ -193,7 +189,6 @@ bool GetAnswer()
 
     while (strcmp(answer, "yes") && strcmp(answer, "no"))
     {
-        printf("<%s>", answer);
         printf("Please, enter the answer to the question: yes or no\n");
         getline(&answer, &num_of_bytes, stdin);
         answer[strlen(answer) - 1] = '\0';
@@ -244,8 +239,6 @@ bool GetDifference(char **ptr, char *object, node_t *node)
         first_word[i] = (char)tolower(first_word[i]);
     }
 
-    printf("first_word = %s\n", first_word);
-
     if (!strcmp(first_word, "not") || !strcmp(first_word, "no") || !strcmp(first_word, "never"))
         return true;
     
@@ -266,17 +259,22 @@ Akinator_Errors FindObject(binary_tree *tree)
 
     bool object_was_found = false;
     node_t *ptr_object = NULL;
-    if (!FindObjectRecursive(tree, tree->root, object, &ptr_object, &object_was_found))
+
+    node_t **ptrs_on_nodes = (node_t **)calloc((size_t)tree->num_of_el, sizeof(node_t *));
+    size_t index = 0;
+
+    if (!FindObjectRecursive(tree, tree->root, object, &ptr_object, &object_was_found, ptrs_on_nodes, &index))
     {
         printf("The item was not found in the tree\n");
     }
+
     else    
     {
-        printf("%s: \n", ptr_object->data);
-        GetDescription(tree, ptr_object);
+        GetDescription(tree, ptr_object, ptrs_on_nodes, 0);
     }
 
     free(object);
+    free(ptrs_on_nodes);
 
     if ((err = AkinatorVerify(tree)))
         return err;
@@ -289,7 +287,7 @@ Akinator_Errors FindObject(binary_tree *tree)
     return err;
 }
 
-bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found)
+bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t **ptr_object, bool *object_was_found, node_t **ptrs_on_nodes, size_t *index)
 {
     ASSERTS(tree);
     assert(object != NULL);
@@ -298,8 +296,10 @@ bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t *
 
     if (node == NULL) return *object_was_found;
 
-    FindObjectRecursive(tree, node->left, object, ptr_object, object_was_found);
-    FindObjectRecursive(tree, node->right, object, ptr_object, object_was_found);
+    ptrs_on_nodes[(*index)++] = node;
+
+    FindObjectRecursive(tree, node->left,  object, ptr_object, object_was_found, ptrs_on_nodes, index);
+    FindObjectRecursive(tree, node->right, object, ptr_object, object_was_found, ptrs_on_nodes, index);
 
     if (!strcmp(object, node->data)) 
     {
@@ -307,25 +307,45 @@ bool FindObjectRecursive(binary_tree *tree, node_t *node, char *object, node_t *
         *object_was_found = true;
     }
 
+    else if (strcmp(object, node->data) && !*object_was_found)
+    {
+        ptrs_on_nodes[--(*index)] = NULL;
+    }
+
     return *object_was_found;
 }
 
-void GetDescription(binary_tree *tree, node_t * ptr_object)
+void GetDescription(binary_tree *tree, node_t * ptr_object, node_t **ptrs_on_nodes, size_t i)
 {
     ASSERTS(tree);
 
-    printf("%s: \n", ptr_object->data);
     if (ptr_object == tree->root) printf("It is the root element and has no properties.");
     else
     {
         printf("The signs inherent in %s: \n", ptr_object->data);
-        node_t *node = ptr_object;
-        for (size_t i = 1; node != tree->root; i++, node = node->parent)
+        //node_t *node = ptr_object;
+
+        // method 1
+        /*for (size_t i = 1; node != tree->root; i++, node = node->parent)
         {
             if (!strcmp(node->parent->right->data, node->data))
                 printf("%zu. no %.*s\n", i, (int)strlen(node->parent->data) - 1, node->parent->data);
             else 
                 printf("%zu. %.*s\n", i, (int)strlen(node->parent->data) - 1, node->parent->data);
+        }
+
+        for (size_t i = 0; ptrs_on_nodes[i] != NULL && ptrs_on_nodes[i + 1] != NULL; i++)
+        {
+            printf("%s\n", ptrs_on_nodes[i]->data);
+        }*/
+
+        // method 2
+        for (; ptrs_on_nodes[i] != NULL && ptrs_on_nodes[i + 1] != NULL; i++)
+        {
+            if (!strcmp(ptrs_on_nodes[i]->right->data, ptrs_on_nodes[i + 1]->data))
+                printf("%zu. no %.*s\n", i + 1, (int)strlen(ptrs_on_nodes[i]->data) - 1, ptrs_on_nodes[i]->data);
+            else 
+                printf("%zu. %.*s\n", i + 1, (int)strlen(ptrs_on_nodes[i]->data) - 1, ptrs_on_nodes[i]->data);
         }
     }
 }
@@ -343,15 +363,106 @@ Akinator_Errors CompareObjects(binary_tree *tree)
     printf("Enter the name of the first object: ");
     char *object1 = NULL;
     GetObject(&object1);
+
+    bool object1_was_found = false;
+    node_t *ptr_object1 = NULL;
+    node_t **ptrs1_on_nodes = (node_t **)calloc((size_t)tree->num_of_el, sizeof(node_t *));
+    size_t index1 = 0;
     
     printf("Enter the name of the second object: ");
     char *object2 = NULL;
     GetObject(&object2);
 
+    bool object2_was_found = false;
+    node_t *ptr_object2 = NULL;
+    node_t **ptrs2_on_nodes = (node_t **)calloc((size_t)tree->num_of_el, sizeof(node_t *));
+    size_t index2 = 0;
+
+    bool not_root_element = true;
+
+    if (!FindObjectRecursive(tree, tree->root, object1, &ptr_object1, &object1_was_found, ptrs1_on_nodes, &index1))
+    {
+        printf("The item number 1 was not found for comparison in the tree\n");
+    }
+
+    if (!FindObjectRecursive(tree, tree->root, object2, &ptr_object2, &object2_was_found, ptrs2_on_nodes, &index2))
+    {
+        printf("The item number 2 was not found for comparison in the tree\n");
+    }
+
+    if (object1_was_found && object2_was_found)
+    {
+        compare_found_items(tree, &not_root_element, ptrs1_on_nodes, ptrs2_on_nodes, ptr_object1, ptr_object2);
+    }
+
+    free_objects(object1, object2, ptrs1_on_nodes, ptrs2_on_nodes);
+
     if ((err = AkinatorVerify(tree)))
         return err;
 
+    if ((err = AkinatorGame(tree)))
+        return err;
+
     return err;
+}
+
+void compare_found_items(binary_tree *tree, bool *not_root_element, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, node_t *ptr_object1, node_t *ptr_object2)
+{
+    if (!strcmp(ptr_object1->data, ptr_object2->data) && !strcmp(ptr_object1->data, tree->root->data))
+    {
+        printf("%s is the root element and has no properties.", ptr_object1->data);
+        *not_root_element = false;
+    }
+
+    if (not_root_element && strcmp(ptr_object1->data, ptr_object2->data)) 
+        printf("General signs of objects %s and %s:\n", ptr_object1->data, ptr_object2->data);
+
+    if (not_root_element && !strcmp(ptr_object1->data, ptr_object2->data))  
+        printf("Signs of object %s:\n", ptr_object1->data);
+
+    size_t i1 = 0, i2 = 0;
+
+    if (strcmp(ptrs1_on_nodes[i1 + 1]->data, ptrs2_on_nodes[i2 + 1]->data))
+    {
+        printf("There are no general signs\n");
+    }
+
+    print_general_signs(not_root_element, ptrs1_on_nodes, ptrs2_on_nodes, &i1, &i2);
+
+    print_differences(tree, ptrs1_on_nodes, ptrs2_on_nodes, ptr_object1, ptr_object2, &i1, &i2);
+}
+
+void print_general_signs(bool not_root_element, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, size_t *i1, size_t *i2)
+{
+    while (not_root_element && ptrs1_on_nodes[*i1 + 1] != NULL && ptrs2_on_nodes[*i2 + 1] != NULL && !strcmp(ptrs1_on_nodes[*i1 + 1]->data, ptrs2_on_nodes[*i2 + 1]->data))
+    {
+        if (!strcmp(ptrs1_on_nodes[*i1]->right->data, ptrs1_on_nodes[*i1 + 1]->data))
+            printf("%zu. no %.*s\n", *i1 + 1, (int)strlen(ptrs1_on_nodes[*i1]->data) - 1, ptrs1_on_nodes[*i1]->data);
+        else 
+            printf("%zu. %.*s\n", *i1 + 1, (int)strlen(ptrs1_on_nodes[*i1]->data) - 1, ptrs1_on_nodes[*i1]->data);
+        (*i1)++;
+        (*i2)++;
+    }
+}
+
+void print_differences(binary_tree *tree, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes, node_t *ptr_object1, node_t *ptr_object2, size_t *i1, size_t *i2)
+{
+    if (ptrs1_on_nodes[*i1 + 1] != NULL && ptrs2_on_nodes[*i2 + 1] != NULL)
+    {
+        printf("%s and %s have some differences\n", ptr_object1->data, ptr_object2->data);
+
+        GetDescription(tree, ptr_object1, ptrs1_on_nodes, *i1);
+        GetDescription(tree, ptr_object2, ptrs2_on_nodes, *i2);
+    }
+}
+
+void free_objects(char *object1, char *object2, node_t **ptrs1_on_nodes, node_t **ptrs2_on_nodes)
+{
+    free(object1);
+    free(ptrs1_on_nodes);
+
+    free(object2);
+    free(ptrs2_on_nodes);
 }
 
 void DiscardSuperfluous()

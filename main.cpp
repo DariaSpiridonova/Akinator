@@ -26,7 +26,7 @@ int main()
         
     AKINATOR_DUMP(&akinator_tree);
 
-    if ((err = SaveTreeToFile(&akinator_tree, "new_tree_for_akinator_game.txt")))
+    if ((err = SaveTreeToFile(&akinator_tree, "tree_for_akinator_game.txt")))
     {
         PrintError(err);
         return 5;

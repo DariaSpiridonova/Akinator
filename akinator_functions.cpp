@@ -295,7 +295,7 @@ void ShowTree(FILE *fp, node_t *node, ssize_t *rank, ssize_t *cur_rank)
     return;
 }
 
-Akinator_Errors SaveTreeToFile(binary_tree *tree, char *name_of_file)
+Akinator_Errors SaveTreeToFile(binary_tree *tree, const char *name_of_file)
 {
     ASSERTS(tree);
 
@@ -333,7 +333,7 @@ void SaveTreeToFileRecursive(FILE *fp, node_t *node)
     return;
 }
 
-Akinator_Errors ReadTreeFromFile(binary_tree *tree, char *name_of_file)
+Akinator_Errors ReadTreeFromFile(binary_tree *tree, const char *name_of_file)
 {
     ASSERTS(tree);
 
@@ -474,7 +474,6 @@ void SkipSpaces(char **position)
 {
     while (**position == ' ') 
     {
-        printf("<%c>", **position);
         (*position)++;
         continue;
     };

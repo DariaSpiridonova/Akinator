@@ -37,9 +37,6 @@ int main()
         PrintError(err);
         return 6;
     }
-        
-    printf("akinator_tree.root_adress = %p\n", akinator_tree.root);
-    printf("thats all\n");
 
     return 0;
 }

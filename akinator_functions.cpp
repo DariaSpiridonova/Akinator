@@ -1,5 +1,6 @@
 #include "akinator.h"
 
+#undef ENABLE_THE_VERIFIER
 Akinator_Errors AkinatorInit(binary_tree *tree, const char *logfile_name)
 {
     assert(tree != NULL);
@@ -30,7 +31,7 @@ Akinator_Errors AkinatorVerify(binary_tree *tree)
 {
     if (tree == NULL) return NULL_POINTER_ON_TREE;
     else if (tree->num_of_el < 0) return NEGATIVE_NUM_OF_ELEMENTS;
-    else if (tree->root == NULL) return NULL_POINTER_ON_ROOT; // не забыть в delete учесть удаление корня
+    else if (tree->root == NULL) return NULL_POINTER_ON_ROOT; 
     else if (tree->root->parent != NULL) return ROOT_HAVE_PARENT;  
     
     node_t *parent = NULL;
@@ -98,25 +99,25 @@ Akinator_Errors AkinatorDestroyRecursive(binary_tree *tree, node_t **node)
     assert(tree != NULL);
 
     Akinator_Errors err = NO_ERROR;
+
+    #ifdef ENABLE_THE_VERIFIER
     if ((err = AkinatorVerify(tree)))
     {
         return err;
     }
+    #endif
 
     if (*node == NULL)
     {
-        printf("node = NULL\n");
         return NO_ERROR;
     }
     AkinatorDestroyRecursive(tree, &((*node)->left));
     AkinatorDestroyRecursive(tree, &((*node)->right));
 
-    printf("%s\n", (*node)->data);
     free((*node)->data);
     (*node)->data = NULL;
     free(*node);
     tree->num_of_el--;
-    printf("Free\n");
     *node = NULL;
 
     return err;
@@ -142,13 +143,11 @@ void AkinatorDump(binary_tree *tree, const char *file, int line)
     strftime(buffer, sizeof(buffer), "%Y_%m_%d_%H_%M_%S", timeinfo);
 
     // Print the formatted time string
-    printf("Current time: %s\n", buffer);
     struct timespec tstart={0,0};
     clock_gettime(CLOCK_MONOTONIC, &tstart);
 
     char gvfile_name[SIZE_OF_NAME] = {0};
     sprintf(gvfile_name, "%s%s%s%ld.gv", link_to_graphviz_file, tree->file_name, buffer, tstart.tv_nsec);
-    printf("%s%s%s%ld.gv\n", link_to_graphviz_file, tree->file_name, buffer, tstart.tv_nsec);
 
     DumpToLogfile(tree, tree->file_name, gvfile_name, &rank);
 
@@ -227,7 +226,6 @@ void CreateGraph(const binary_tree *tree, const char *gvfile_name)
     }
 
     char command[SIZE_OF_NAME * 2] = {0};
-    printf("gvfile_name = %s, gvfile_name = %*s\n", gvfile_name, (int)strlen(gvfile_name) - 3, gvfile_name);
     sprintf(command, "dot %s -Tpng -o %*s.png", gvfile_name, (int)strlen(gvfile_name) - 3, gvfile_name);
     
     int error = system(command);
@@ -269,7 +267,6 @@ void LinkEdges(FILE *fp, node_t *node)
     LinkEdges(fp, node->left);
     
     if (node->left != NULL) {
-        printf("node_left = %p", node->left);
         fprintf(fp, "\"node_%p\":left_answer -> \"node_%p\";\n", node, node->left);}
 
     if (node->right != NULL)
@@ -356,16 +353,22 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, const char *name_of_file)
 
     size_t num_success_read_symbols = fread(tree_buffer, sizeof(char), num_of_bytes_in_file, file_to_read);
     if (num_success_read_symbols < num_of_bytes_in_file)
+    {
         return ERROR_DURING_READ_FILE;
+        free(tree_buffer);
+    }
 
     tree_buffer[num_success_read_symbols] = '\0';
    
     if (!CloseFileSuccess(file_to_read, "tree_for_akinator_game.txt"))
+    {
         return ERROR_DURING_CLOSING_FILE;
+        free(tree_buffer);
+    }
     
     SplitIntoParts(tree_buffer);
 
-    static char *position = tree_buffer;
+    char *position = tree_buffer;
     ReadNodeFromBuffer(tree, &position, &(tree->root), NULL);
 
     free(tree_buffer);
@@ -375,6 +378,8 @@ Akinator_Errors ReadTreeFromFile(binary_tree *tree, const char *name_of_file)
 
 void SplitIntoParts(char *tree_buffer)
 {
+    assert(tree_buffer != NULL);
+    
     char *ptr_to_quotation_mark = tree_buffer;
     for (size_t i = 0; (ptr_to_quotation_mark = strchr(ptr_to_quotation_mark, '"')) != NULL; i++)
     {
@@ -388,10 +393,13 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
     ASSERTS(tree);
 
     Akinator_Errors err = NO_ERROR;
+
+    #ifdef ENABLE_THE_VERIFIER
     if ((err = AkinatorVerify(tree)))
     {
         return NULL;
     }
+    #endif
 
     SkipSpaces(position);
 
@@ -429,10 +437,12 @@ char *ReadNodeFromBuffer(binary_tree *tree, char **position, node_t **node, node
         return *position;
     }
 
+    #ifdef ENABLE_THE_VERIFIER
     if ((err = AkinatorVerify(tree)))
     {
         return *position;
     }
+    #endif
 
     return *position;
 }

@@ -8,33 +8,42 @@ Akinator_Errors AkinatorGame(binary_tree *tree)
     if ((err = AkinatorVerify(tree)))
         return err;
 
-    printf("What do you want to do?\n");
-    printf("    1) Play a game\n");
-    printf("    2) Find an object\n");
-    printf("    3) Compare objects\n");
-    printf("    4) End the game\n");
-    printf("Enter the number of the corresponding request: ");
     ssize_t num = 0;
-    GetARequestNumber(&num);
 
-    switch(num)
-    {
-        case 1:
-            return PlayGame(tree);
+    do
+    {    
+        printf("What do you want to do?\n");
+        printf("    1) Play a game\n");
+        printf("    2) Find an object\n");
+        printf("    3) Compare objects\n");
+        printf("    4) End the game\n");
+        printf("Enter the number of the corresponding request: ");
+        GetARequestNumber(&num);
 
-        case 2:
-            return FindObject(tree);
+        switch(num)
+            {
+                case 1:
+                    err = PlayGame(tree);
+                    break;
 
-        case 3:
-            return CompareObjects(tree);
+                case 2:
+                    err =  FindObject(tree);
+                    break;
 
-        case 4:
-            printf("Thanks for playing! Goodbye!\n");
-            return err;
+                case 3:
+                    err = CompareObjects(tree);
+                    break;
 
-        default:
-            return err;
+                case 4:
+                    printf("Thanks for playing! Goodbye!\n");
+                    break;
+
+                default:
+                    return err;
+            }
     }
+
+    while (num != 4);
 
     return err;
 }
@@ -82,10 +91,6 @@ Akinator_Errors PlayGame(binary_tree *tree)
             if ((err = AddingNode(tree, node)))
                 return err;
             
-            if ((err = AkinatorGame(tree)))
-            {
-                return err;
-            }
             break;
         }
     }
@@ -152,7 +157,7 @@ Akinator_Errors Victory(binary_tree *tree)
         return err;
 
     printf("Hooray! We guessed right!\n");
-    return AkinatorGame(tree);
+    return err;
 }
 
 Akinator_Errors NodeInit(binary_tree *tree, node_t **node, node_t *parent, char **string)
@@ -207,7 +212,7 @@ bool GetAnswer()
 void GetObject(char **ptr)
 {
     size_t num_of_bytes = 0;
-    printf("%zd\n", getline(ptr, &num_of_bytes, stdin));
+    getline(ptr, &num_of_bytes, stdin);
     (*ptr)[strlen(*ptr) - 1] = '\0';
 }
 
@@ -278,11 +283,6 @@ Akinator_Errors FindObject(binary_tree *tree)
 
     if ((err = AkinatorVerify(tree)))
         return err;
-
-    if ((err = AkinatorGame(tree)))
-    {
-        return err;
-    }
 
     return err;
 }
@@ -398,9 +398,6 @@ Akinator_Errors CompareObjects(binary_tree *tree)
     free_objects(object1, object2, ptrs1_on_nodes, ptrs2_on_nodes);
 
     if ((err = AkinatorVerify(tree)))
-        return err;
-
-    if ((err = AkinatorGame(tree)))
         return err;
 
     return err;

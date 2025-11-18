@@ -20,6 +20,8 @@
         AkinatorDump(tree,__FILE__, __LINE__)
 
 #define BEAUTIFUL_DUMP 
+#define ENABLE_THE_VERIFIER 
+
 typedef int used_type;
 
 const used_type POIZON = 765418;
